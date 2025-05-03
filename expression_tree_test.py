@@ -162,16 +162,16 @@ class TestExpressionTree(unittest.TestCase):
         """Test a complex example with multiple operations and functions."""
         expression = "sin(a) + cos(b) * sqrt(c^2 + d^2) / (e - f)"
         tree = parse_expression(expression)
-        
+    
         variables = {"a": 0.5, "b": 0.3, "c": 3, "d": 4, "e": 10, "f": 5}
         result = tree.evaluate(variables)
-        
+    
         # Calculate expected result manually
-        expected = (math.sin(0.5) + 
-                   math.cos(0.3) * math.sqrt(3**2 + 4**2) / (10 - 5))
-        
+        expected = (math.sin(0.5) +
+                  math.cos(0.3) * math.sqrt(3**2 + 4**2) / (10 - 5))
+
         self.assertAlmostEqual(result, expected)
-        
+
         # Test visualization with trace
         dot_code = tree.visualize("complex_example.dot", variables, show_trace=True)
         self.assertTrue(os.path.exists("complex_example.dot"))
