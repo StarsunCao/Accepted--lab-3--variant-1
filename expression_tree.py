@@ -3,10 +3,8 @@ import logging
 import math
 import operator
 from typing import Dict, Any, Callable, Union, List, Tuple, Optional
-import matplotlib.pyplot as plt
 import os
 import subprocess
-from tempfile import NamedTemporaryFile
 
 # Configure logging
 # Create a logger
@@ -279,7 +277,8 @@ class ExpressionTree:
             show_trace: Whether to show evaluation trace on the graph
         """
         # Create DOT file content
-        dot_content = ["digraph ExpressionTree {"]
+        dot_content = ["digraph G {"]
+        dot_content.append("  rankdir=LR;")  # Left to right layout
         dot_content.append("  node [shape=circle, style=filled, fillcolor=lightblue, fontname=Arial];")
         dot_content.append("  edge [fontname=Arial];")
         
@@ -314,22 +313,22 @@ class ExpressionTree:
         for node_id, label in node_labels.items():
             # Escape quotes in label
             escaped_label = label.replace('"', '\\"')
-            dot_content.append(f'  "{node_id}" [label="{escaped_label}"];')
+            dot_content.append(f'  {node_id}[label="{escaped_label}"];')
         
         # Add edges to DOT content
         for src, dst in edges:
             edge_label = edge_labels.get((src, dst), "")
             if edge_label:
-                dot_content.append(f'  "{src}" -> "{dst}" [label="{edge_label}"];')
+                dot_content.append(f'  {src} -> {dst}[label="{edge_label}"];')
             else:
-                dot_content.append(f'  "{src}" -> "{dst}";')
+                dot_content.append(f'  {src} -> {dst};')
         
         dot_content.append("}")
         
-        # Write DOT content to temporary file
-        with NamedTemporaryFile(suffix='.dot', delete=False, mode='w') as dot_file:
-            dot_file.write('\n'.join(dot_content))
-            dot_file_path = dot_file.name
+        # Write DOT content to file
+        dot_file = f"{os.path.splitext(filename)[0]}.dot"
+        with open(dot_file, 'w') as f:
+            f.write('\n'.join(dot_content))
         
         # Determine output format from filename
         output_format = filename.split('.')[-1]
@@ -340,7 +339,7 @@ class ExpressionTree:
         # Run GraphViz to generate the image
         try:
             subprocess.run(
-                ['dot', f'-T{output_format}', dot_file_path, '-o', filename],
+                ['dot', f'-T{output_format}', dot_file, '-o', filename],
                 check=True,
                 capture_output=True
             )
@@ -350,12 +349,6 @@ class ExpressionTree:
             logger.error(f"GraphViz output: {e.stderr.decode()}")
         except FileNotFoundError:
             logger.error("GraphViz 'dot' command not found. Please install GraphViz.")
-        
-        # Clean up temporary file
-        try:
-            os.unlink(dot_file_path)
-        except Exception as e:
-            logger.warning(f"Failed to remove temporary file {dot_file_path}: {e}")
         
         # Ensure log is written
         for handler in logger.handlers:

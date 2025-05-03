@@ -117,6 +117,7 @@ class TestExpressionTree(unittest.TestCase):
         tree = parse_expression("a + b * c")
         tree.visualize(variables={"a": 1, "b": 2, "c": 3}, show_trace=True)
         self.assertTrue(os.path.exists("expression_tree.png"))
+        self.assertTrue(os.path.exists("expression_tree.dot"))
     
     @given(st.floats(min_value=-100, max_value=100),
            st.floats(min_value=-100, max_value=100))
@@ -168,6 +169,7 @@ class TestExpressionTree(unittest.TestCase):
         # Test visualization with trace
         tree.visualize("complex_example.png", variables, show_trace=True)
         self.assertTrue(os.path.exists("complex_example.png"))
+        self.assertTrue(os.path.exists("complex_example.dot"))
 
 
 if __name__ == "__main__":
