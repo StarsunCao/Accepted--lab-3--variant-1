@@ -20,7 +20,8 @@ console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 
 # Create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 
@@ -38,24 +39,24 @@ FunctionDict = Dict[str, Callable]
 
 class ExpressionNode:
     """Base class for all nodes in the expression tree."""
-    
+
     def __init__(self, value: NodeType):
         """Initialize a node with a value.
-        
+
         Args:
             value: The value stored in this node
         """
         self.value = value
         self.id = id(self)  # Unique identifier for visualization
     
-    def evaluate(self, variables: Dict[str, Any] = None, 
+    def evaluate(self, variables: Dict[str, Any] = None,
                  functions: FunctionDict = None) -> Any:
         """Evaluate this node.
-        
+
         Args:
             variables: Dictionary of variable names to values
             functions: Dictionary of function names to callables
-            
+
         Returns:
             The result of evaluating this node
         """
@@ -68,14 +69,14 @@ class ExpressionNode:
 class ConstantNode(ExpressionNode):
     """Node representing a constant value."""
     
-    def evaluate(self, variables: Dict[str, Any] = None, 
+    def evaluate(self, variables: Dict[str, Any] = None,
                  functions: FunctionDict = None) -> float:
         """Return the constant value.
-        
+
         Args:
             variables: Dictionary of variable names to values (unused)
             functions: Dictionary of function names to callables (unused)
-            
+
         Returns:
             The constant value
         """
@@ -86,17 +87,17 @@ class ConstantNode(ExpressionNode):
 class VariableNode(ExpressionNode):
     """Node representing a variable."""
     
-    def evaluate(self, variables: Dict[str, Any] = None, 
+    def evaluate(self, variables: Dict[str, Any] = None,
                  functions: FunctionDict = None) -> float:
         """Look up the variable value.
-        
+
         Args:
             variables: Dictionary of variable names to values
             functions: Dictionary of function names to callables (unused)
-            
+
         Returns:
             The value of the variable
-            
+
         Raises:
             ValueError: If the variable is not defined
         """
@@ -125,12 +126,12 @@ class OperatorNode(ExpressionNode):
     
     def __init__(self, operator: str, left: ExpressionNode, right: ExpressionNode):
         """Initialize an operator node.
-        
+
         Args:
             operator: The operator symbol
             left: The left operand node
             right: The right operand node
-            
+
         Raises:
             ValueError: If the operator is not supported
         """
@@ -141,7 +142,7 @@ class OperatorNode(ExpressionNode):
         self.left = left
         self.right = right
     
-    def evaluate(self, variables: Dict[str, Any] = None, 
+    def evaluate(self, variables: Dict[str, Any] = None,
                  functions: FunctionDict = None) -> float:
         """Evaluate the operation.
         
@@ -167,7 +168,8 @@ class OperatorNode(ExpressionNode):
         except ZeroDivisionError:
             raise ZeroDivisionError(f"Division by zero: {left_val} / 0")
         except Exception as e:
-            raise ValueError(f"Error evaluating {left_val} {self.value} {right_val}: {str(e)}")
+            raise ValueError(
+                f"Error evaluating {left_val} {self.value} {right_val}: {str(e)}")
 
 
 class FunctionNode(ExpressionNode):
@@ -194,10 +196,10 @@ class FunctionNode(ExpressionNode):
         super().__init__(function_name)
         self.argument = argument
     
-    def evaluate(self, variables: Dict[str, Any] = None, 
+    def evaluate(self, variables: Dict[str, Any] = None,
                  functions: FunctionDict = None) -> float:
         """Evaluate the function.
-        
+
         Args:
             variables: Dictionary of variable names to values
             functions: Dictionary of function names to callables
@@ -225,7 +227,8 @@ class FunctionNode(ExpressionNode):
             logger.debug(f"Evaluating {self.value}({arg_val}) = {result}")
             return result
         except Exception as e:
-            raise ValueError(f"Error evaluating {self.value}({arg_val}): {str(e)}")
+            raise ValueError(
+                f"Error evaluating {self.value}({arg_val}): {str(e)}")
 
 
 class ExpressionTree:
@@ -239,7 +242,7 @@ class ExpressionTree:
         """
         self.root = root
     
-    def evaluate(self, variables: Dict[str, Any] = None, 
+    def evaluate(self, variables: Dict[str, Any] = None,
                  functions: FunctionDict = None) -> float:
         """Evaluate the expression tree.
         
@@ -266,7 +269,7 @@ class ExpressionTree:
             handler.flush()
         return result
 
-    def visualize(self, filename: str = "expression_tree.dot", 
+    def visualize(self, filename: str = "expression_tree.dot",
                   variables: Dict[str, Any] = None,
                   show_trace: bool = False) -> str:
         """Generate GraphViz DOT code for the expression tree.
@@ -291,8 +294,8 @@ class ExpressionTree:
         edge_labels = {}
         
         # Build the graph structure
-        self._build_graph(node_labels, edges, edge_labels, self.root, 
-                         variables if show_trace else None)
+        self._build_graph(node_labels, edges, edge_labels, self.root,
+                          variables if show_trace else None)
         
         # Add result node if variables are provided
         if variables is not None:
@@ -307,8 +310,9 @@ class ExpressionTree:
             edges.append((root_id, result_node_id))
             
             # Get the next edge ID
-            max_edge_id = max([int(edge_labels.get((src, dst), '0')) 
-                            for src, dst in edges if edge_labels.get((src, dst), '0').isdigit()], 
+            max_edge_id = max([int(edge_labels.get((src, dst), '0'))
+                             for src, dst in edges
+                             if edge_labels.get((src, dst), '0').isdigit()],
                             default=0)
             edge_labels[(root_id, result_node_id)] = str(max_edge_id + 1)
         
@@ -343,12 +347,12 @@ class ExpressionTree:
         
         return dot_code
     
-    def _build_graph(self, node_labels: Dict[str, str], 
-                    edges: List[Tuple[str, str]],
-                    edge_labels: Dict[Tuple[str, str], str],
-                    node: ExpressionNode, 
-                    variables: Optional[Dict[str, Any]] = None,
-                    edge_id: int = 0) -> Tuple[str, int]:
+    def _build_graph(self, node_labels: Dict[str, str],
+                     edges: List[Tuple[str, str]],
+                     edge_labels: Dict[Tuple[str, str], str],
+                     node: ExpressionNode,
+                     variables: Optional[Dict[str, Any]] = None,
+                     edge_id: int = 0) -> Tuple[str, int]:
         """Recursively build a graph representation of the expression tree.
         
         Args:
@@ -376,9 +380,9 @@ class ExpressionTree:
         
         # Recursively add children
         if isinstance(node, OperatorNode):
-            left_id, edge_id = self._build_graph(node_labels, edges, edge_labels, 
+            left_id, edge_id = self._build_graph(node_labels, edges, edge_labels,
                                                node.left, variables, edge_id)
-            right_id, edge_id = self._build_graph(node_labels, edges, edge_labels, 
+            right_id, edge_id = self._build_graph(node_labels, edges, edge_labels,
                                                 node.right, variables, edge_id)
             
             edges.append((left_id, node_id))
@@ -390,7 +394,7 @@ class ExpressionTree:
             edge_id += 1
             
         elif isinstance(node, FunctionNode):
-            arg_id, edge_id = self._build_graph(node_labels, edges, edge_labels, 
+            arg_id, edge_id = self._build_graph(node_labels, edges, edge_labels,
                                               node.argument, variables, edge_id)
             edges.append((arg_id, node_id))
             edge_labels[(arg_id, node_id)] = str(edge_id)
@@ -409,13 +413,13 @@ class ExpressionParser:
     
     def parse(self, expression: str) -> ExpressionTree:
         """Parse a mathematical expression into an expression tree.
-        
+
         Args:
             expression: The expression string to parse
-            
+
         Returns:
             An ExpressionTree representing the parsed expression
-            
+
         Raises:
             ValueError: If the expression is invalid
         """
@@ -435,10 +439,10 @@ class ExpressionParser:
     
     def _tokenize(self, expression: str) -> List[str]:
         """Tokenize an expression string.
-        
+
         Args:
             expression: The expression string to tokenize
-            
+
         Returns:
             A list of tokens
         """
@@ -446,7 +450,8 @@ class ExpressionParser:
         expression = expression.replace("**", "^")
         
         # Regular expression for tokenizing
-        token_pattern = r'([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+(?:\.[0-9]+)?|\+|\-|\*|\/|\^|\(|\))'
+        token_pattern = (r'([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+(?:\.[0-9]+)?|\+|\-|\*|\/|\^|'
+                         r'\(|\))')
         tokens = re.findall(token_pattern, expression)
         
         logger.debug(f"Tokenized expression: {tokens}")
@@ -454,7 +459,7 @@ class ExpressionParser:
     
     def _parse_expression(self) -> ExpressionNode:
         """Parse an expression.
-        
+
         Returns:
             An ExpressionNode representing the parsed expression
         """
@@ -462,7 +467,7 @@ class ExpressionParser:
     
     def _parse_addition(self) -> ExpressionNode:
         """Parse addition and subtraction.
-        
+
         Returns:
             An ExpressionNode representing the parsed expression
         """
@@ -478,7 +483,7 @@ class ExpressionParser:
     
     def _parse_multiplication(self) -> ExpressionNode:
         """Parse multiplication and division.
-        
+
         Returns:
             An ExpressionNode representing the parsed expression
         """
@@ -494,7 +499,7 @@ class ExpressionParser:
     
     def _parse_power(self) -> ExpressionNode:
         """Parse exponentiation.
-        
+
         Returns:
             An ExpressionNode representing the parsed expression
         """
@@ -509,10 +514,10 @@ class ExpressionParser:
     
     def _parse_factor(self) -> ExpressionNode:
         """Parse a factor (number, variable, function call, or parenthesized expression).
-        
+
         Returns:
             An ExpressionNode representing the parsed factor
-            
+
         Raises:
             ValueError: If the factor is invalid
         """
@@ -568,10 +573,10 @@ class ExpressionParser:
 
 def parse_expression(expression: str) -> ExpressionTree:
     """Parse a mathematical expression into an expression tree.
-    
+
     Args:
         expression: The expression string to parse
-        
+
     Returns:
         An ExpressionTree representing the parsed expression
     """
