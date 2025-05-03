@@ -16,8 +16,8 @@ class TestExpressionTree(unittest.TestCase):
     def setUp(self):
         """Set up test environment."""
         # Ensure any visualization files are cleaned up
-        if os.path.exists("expression_tree.png"):
-            os.remove("expression_tree.png")
+        if os.path.exists("expression_tree.dot"):
+            os.remove("expression_tree.dot")
     
     def test_simple_addition(self):
         """Test simple addition expression."""
@@ -115,9 +115,15 @@ class TestExpressionTree(unittest.TestCase):
     def test_visualization(self):
         """Test visualization functionality."""
         tree = parse_expression("a + b * c")
-        tree.visualize(variables={"a": 1, "b": 2, "c": 3}, show_trace=True)
-        self.assertTrue(os.path.exists("expression_tree.png"))
+        dot_code = tree.visualize(variables={"a": 1, "b": 2, "c": 3}, show_trace=True)
         self.assertTrue(os.path.exists("expression_tree.dot"))
+        self.assertIn("digraph G {", dot_code)
+        self.assertIn("rankdir=LR;", dot_code)
+        
+        # Check that the DOT code contains node and edge definitions
+        self.assertRegex(dot_code, r'\d+\[label="a\\n= 1\.00"\];')
+        self.assertRegex(dot_code, r'\d+\[label="\*\\n= 6\.00"\];')
+        self.assertRegex(dot_code, r'\d+ -> \d+\[label="\d+"\];')
     
     @given(st.floats(min_value=-100, max_value=100),
            st.floats(min_value=-100, max_value=100))
@@ -167,9 +173,10 @@ class TestExpressionTree(unittest.TestCase):
         self.assertAlmostEqual(result, expected)
         
         # Test visualization with trace
-        tree.visualize("complex_example.png", variables, show_trace=True)
-        self.assertTrue(os.path.exists("complex_example.png"))
+        dot_code = tree.visualize("complex_example.dot", variables, show_trace=True)
         self.assertTrue(os.path.exists("complex_example.dot"))
+        self.assertIn("digraph G {", dot_code)
+        self.assertIn("rankdir=LR;", dot_code)
 
 
 if __name__ == "__main__":

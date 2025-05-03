@@ -266,15 +266,18 @@ class ExpressionTree:
             handler.flush()
         return result
 
-    def visualize(self, filename: str = "expression_tree.png", 
+    def visualize(self, filename: str = "expression_tree.dot", 
                   variables: Dict[str, Any] = None,
-                  show_trace: bool = False) -> None:
-        """Visualize the expression tree as a dataflow graph using GraphViz.
+                  show_trace: bool = False) -> str:
+        """Generate GraphViz DOT code for the expression tree.
         
         Args:
-            filename: The filename to save the visualization
+            filename: The filename to save the DOT code
             variables: Dictionary of variable names to values (for trace)
             show_trace: Whether to show evaluation trace on the graph
+            
+        Returns:
+            The DOT code as a string
         """
         # Create DOT file content
         dot_content = ["digraph G {"]
@@ -325,34 +328,20 @@ class ExpressionTree:
         
         dot_content.append("}")
         
-        # Write DOT content to file
-        dot_file = f"{os.path.splitext(filename)[0]}.dot"
-        with open(dot_file, 'w') as f:
-            f.write('\n'.join(dot_content))
+        # Join DOT content into a single string
+        dot_code = '\n'.join(dot_content)
         
-        # Determine output format from filename
-        output_format = filename.split('.')[-1]
-        if output_format not in ['png', 'svg', 'pdf']:
-            output_format = 'png'
-            filename = f"{filename}.{output_format}"
-        
-        # Run GraphViz to generate the image
-        try:
-            subprocess.run(
-                ['dot', f'-T{output_format}', dot_file, '-o', filename],
-                check=True,
-                capture_output=True
-            )
-            logger.info(f"Visualization saved to {filename}")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Error generating visualization: {e}")
-            logger.error(f"GraphViz output: {e.stderr.decode()}")
-        except FileNotFoundError:
-            logger.error("GraphViz 'dot' command not found. Please install GraphViz.")
+        # Write DOT content to file if filename is provided
+        if filename:
+            with open(filename, 'w') as f:
+                f.write(dot_code)
+            logger.info(f"DOT code saved to {filename}")
         
         # Ensure log is written
         for handler in logger.handlers:
             handler.flush()
+        
+        return dot_code
     
     def _build_graph(self, node_labels: Dict[str, str], 
                     edges: List[Tuple[str, str]],
