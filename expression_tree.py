@@ -295,7 +295,8 @@ class ExpressionTree:
         dot_content = ["digraph G {"]
         dot_content.append("  rankdir=LR;")  # Left to right layout
         dot_content.append(
-            "  node [shape=circle, style=filled, fillcolor=lightblue, fontname=Arial];")
+            "  node [shape=circle, style=filled, \
+            fillcolor=lightblue, fontname=Arial];")
         dot_content.append("  edge [fontname=Arial];")
 
         # Dictionary to track node and edge information
@@ -391,9 +392,11 @@ class ExpressionTree:
         # Recursively add children
         if isinstance(node, OperatorNode):
             left_id, edge_id = self._build_graph(
-                node_labels, edges, edge_labels, node.left, variables, edge_id)
+                node_labels, edges, edge_labels,
+                node.left, variables, edge_id)
             right_id, edge_id = self._build_graph(
-                node_labels, edges, edge_labels, node.right, variables, edge_id)
+                node_labels, edges, edge_labels,
+                node.right, variables, edge_id)
 
             edges.append((left_id, node_id))
             edge_labels[(left_id, node_id)] = str(edge_id)
@@ -405,7 +408,8 @@ class ExpressionTree:
 
         elif isinstance(node, FunctionNode):
             arg_id, edge_id = self._build_graph(
-                node_labels, edges, edge_labels, node.argument, variables, edge_id)
+                node_labels, edges, edge_labels,
+                node.argument, variables, edge_id)
             edges.append((arg_id, node_id))
             edge_labels[(arg_id, node_id)] = str(edge_id)
             edge_id += 1
@@ -461,7 +465,8 @@ class ExpressionParser:
 
         # Regular expression for tokenizing
         token_pattern = (
-            r'([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+(?:\.[0-9]+)?|\+|\-|\*|\/|\^|' r'\(|\))')
+            r'([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\
+            (?:\.[0-9]+)?|\+|\-|\*|\/|\^|' r'\(|\))')
         tokens = re.findall(token_pattern, expression)
 
         logger.debug(f"Tokenized expression: {tokens}")
@@ -526,7 +531,8 @@ class ExpressionParser:
         return left
 
     def _parse_factor(self) -> ExpressionNode:
-        """Parse a factor (number, variable, function call, or parenthesized expression).
+        """Parse a factor (number, variable, function call, 
+        or parenthesized expression).
 
         Returns:
             An ExpressionNode representing the parsed factor
