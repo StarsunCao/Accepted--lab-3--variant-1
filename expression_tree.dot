@@ -1,0 +1,16 @@
+digraph G {
+  rankdir=LR;
+  node [shape=circle, style=filled, fillcolor=lightblue, fontname=Arial];
+  edge [fontname=Arial];
+  1401958817600[label="+\n= 7.00"];
+  1401958815056[label="a\n= 1.00"];
+  1401958817552[label="*\n= 6.00"];
+  1401958817648[label="b\n= 2.00"];
+  1401958817408[label="c\n= 3.00"];
+  result[label="result\n= 7.00"];
+  1401958817648 -> 1401958817552[label="0"];
+  1401958817408 -> 1401958817552[label="1"];
+  1401958815056 -> 1401958817600[label="2"];
+  1401958817552 -> 1401958817600[label="3"];
+  1401958817600 -> result[label="4"];
+}
