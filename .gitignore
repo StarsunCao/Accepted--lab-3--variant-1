@@ -127,3 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+complex_example.png
+expression_tree.png
