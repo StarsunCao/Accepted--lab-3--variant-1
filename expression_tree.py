@@ -3,8 +3,10 @@ import logging
 import math
 import operator
 from typing import Dict, Any, Callable, Union, List, Tuple, Optional
-import networkx as nx
 import matplotlib.pyplot as plt
+import os
+import subprocess
+from tempfile import NamedTemporaryFile
 
 # Configure logging
 # Create a logger
@@ -269,66 +271,108 @@ class ExpressionTree:
     def visualize(self, filename: str = "expression_tree.png", 
                   variables: Dict[str, Any] = None,
                   show_trace: bool = False) -> None:
-        """Visualize the expression tree as a dataflow graph.
+        """Visualize the expression tree as a dataflow graph using GraphViz.
         
         Args:
             filename: The filename to save the visualization
             variables: Dictionary of variable names to values (for trace)
             show_trace: Whether to show evaluation trace on the graph
         """
-        G = nx.DiGraph()
+        # Create DOT file content
+        dot_content = ["digraph ExpressionTree {"]
+        dot_content.append("  node [shape=circle, style=filled, fillcolor=lightblue, fontname=Arial];")
+        dot_content.append("  edge [fontname=Arial];")
         
-        # Build the graph
-        self._build_graph(G, self.root, variables if show_trace else None)
+        # Dictionary to track node and edge information
+        node_labels = {}
+        edges = []
+        edge_labels = {}
         
-        # 添加结果节点
+        # Build the graph structure
+        self._build_graph(node_labels, edges, edge_labels, self.root, 
+                         variables if show_trace else None)
+        
+        # Add result node if variables are provided
         if variables is not None:
-            result_node_id = "result"
             result_value = self.evaluate(variables)
-            G.add_node(result_node_id, label=f"result\n= {result_value:.2f}")
+            result_node_id = "result"
             
-            # 连接根节点到结果节点，添加edge_id
+            # Add label for result node
+            node_labels[result_node_id] = f"result\\n= {result_value:.2f}"
+            
+            # Connect root to result
             root_id = str(self.root.id)
-            # 获取当前最大的edge_id并加1
-            max_edge_id = max([int(data.get('label', '0')) for _, _, data in G.edges(data=True) 
-                            if data.get('label', '').isdigit()], default=0)
-            G.add_edge(root_id, result_node_id, label=str(max_edge_id + 1))
+            edges.append((root_id, result_node_id))
+            
+            # Get the next edge ID
+            max_edge_id = max([int(edge_labels.get((src, dst), '0')) 
+                            for src, dst in edges if edge_labels.get((src, dst), '0').isdigit()], 
+                            default=0)
+            edge_labels[(root_id, result_node_id)] = str(max_edge_id + 1)
         
-        # 使用spring布局，但减小k值以缩短节点间距离
-        pos = nx.spring_layout(G, k=0.1, iterations=50, seed=42)
+        # Add nodes to DOT content
+        for node_id, label in node_labels.items():
+            # Escape quotes in label
+            escaped_label = label.replace('"', '\\"')
+            dot_content.append(f'  "{node_id}" [label="{escaped_label}"];')
         
-        plt.figure(figsize=(12, 10))
+        # Add edges to DOT content
+        for src, dst in edges:
+            edge_label = edge_labels.get((src, dst), "")
+            if edge_label:
+                dot_content.append(f'  "{src}" -> "{dst}" [label="{edge_label}"];')
+            else:
+                dot_content.append(f'  "{src}" -> "{dst}";')
         
-        # 绘制节点
-        nx.draw_networkx_nodes(G, pos, node_color='lightblue', node_size=700, alpha=0.8)
+        dot_content.append("}")
         
-        # 绘制边和标签，使用箭头
-        nx.draw_networkx_edges(G, pos, arrows=True, arrowsize=15, width=1.5)
+        # Write DOT content to temporary file
+        with NamedTemporaryFile(suffix='.dot', delete=False, mode='w') as dot_file:
+            dot_file.write('\n'.join(dot_content))
+            dot_file_path = dot_file.name
         
-        # 保留原始的边标签（包括edge_id）
-        edge_labels = nx.get_edge_attributes(G, 'label')
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=12)
+        # Determine output format from filename
+        output_format = filename.split('.')[-1]
+        if output_format not in ['png', 'svg', 'pdf']:
+            output_format = 'png'
+            filename = f"{filename}.{output_format}"
         
-        # 绘制节点标签
-        node_labels = nx.get_node_attributes(G, 'label')
-        nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=10, font_weight='bold')
+        # Run GraphViz to generate the image
+        try:
+            subprocess.run(
+                ['dot', f'-T{output_format}', dot_file_path, '-o', filename],
+                check=True,
+                capture_output=True
+            )
+            logger.info(f"Visualization saved to {filename}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error generating visualization: {e}")
+            logger.error(f"GraphViz output: {e.stderr.decode()}")
+        except FileNotFoundError:
+            logger.error("GraphViz 'dot' command not found. Please install GraphViz.")
         
-        plt.title("Expression Tree Visualization")
-        plt.axis('off')
-        plt.tight_layout()
-        plt.savefig(filename, dpi=300)
-        logger.info(f"Visualization saved to {filename}")
+        # Clean up temporary file
+        try:
+            os.unlink(dot_file_path)
+        except Exception as e:
+            logger.warning(f"Failed to remove temporary file {dot_file_path}: {e}")
+        
         # Ensure log is written
         for handler in logger.handlers:
             handler.flush()
     
-    def _build_graph(self, G: nx.DiGraph, node: ExpressionNode, 
-                     variables: Optional[Dict[str, Any]] = None, 
-                     edge_id: int = 0) -> Tuple[str, int]:
+    def _build_graph(self, node_labels: Dict[str, str], 
+                    edges: List[Tuple[str, str]],
+                    edge_labels: Dict[Tuple[str, str], str],
+                    node: ExpressionNode, 
+                    variables: Optional[Dict[str, Any]] = None,
+                    edge_id: int = 0) -> Tuple[str, int]:
         """Recursively build a graph representation of the expression tree.
         
         Args:
-            G: The NetworkX graph
+            node_labels: Dictionary to store node labels
+            edges: List to store edges
+            edge_labels: Dictionary to store edge labels
             node: The current node
             variables: Dictionary of variable names to values (for trace)
             edge_id: The current edge ID
@@ -342,25 +386,32 @@ class ExpressionTree:
         if variables is not None:
             try:
                 value = node.evaluate(variables)
-                G.add_node(node_id, label=f"{node}\n= {value:.2f}")
+                node_labels[node_id] = f"{node}\\n= {value:.2f}"
             except Exception:
-                G.add_node(node_id, label=str(node))
+                node_labels[node_id] = str(node)
         else:
-            G.add_node(node_id, label=str(node))
+            node_labels[node_id] = str(node)
         
         # Recursively add children
         if isinstance(node, OperatorNode):
-            left_id, edge_id = self._build_graph(G, node.left, variables, edge_id)
-            right_id, edge_id = self._build_graph(G, node.right, variables, edge_id)
+            left_id, edge_id = self._build_graph(node_labels, edges, edge_labels, 
+                                               node.left, variables, edge_id)
+            right_id, edge_id = self._build_graph(node_labels, edges, edge_labels, 
+                                                node.right, variables, edge_id)
             
-            G.add_edge(left_id, node_id, label=str(edge_id))
+            edges.append((left_id, node_id))
+            edge_labels[(left_id, node_id)] = str(edge_id)
             edge_id += 1
-            G.add_edge(right_id, node_id, label=str(edge_id))
+            
+            edges.append((right_id, node_id))
+            edge_labels[(right_id, node_id)] = str(edge_id)
             edge_id += 1
             
         elif isinstance(node, FunctionNode):
-            arg_id, edge_id = self._build_graph(G, node.argument, variables, edge_id)
-            G.add_edge(arg_id, node_id, label=str(edge_id))
+            arg_id, edge_id = self._build_graph(node_labels, edges, edge_labels, 
+                                              node.argument, variables, edge_id)
+            edges.append((arg_id, node_id))
+            edge_labels[(arg_id, node_id)] = str(edge_id)
             edge_id += 1
         
         return node_id, edge_id
