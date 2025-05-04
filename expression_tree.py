@@ -183,7 +183,7 @@ class FunctionNode(ExpressionNode):
     """Node representing a function call."""
 
     # Dictionary of built-in functions
-    BUILTIN_FUNCTIONS = {
+    BUILTIN_FUNCTIONS: Dict[str, Callable[[float], float]] = {
         'sin': math.sin,
         'cos': math.cos,
         'tan': math.tan,
