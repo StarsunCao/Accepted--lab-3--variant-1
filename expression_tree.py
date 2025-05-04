@@ -47,8 +47,8 @@ class ExpressionNode:
         self.value = value
         self.id = id(self)  # Unique identifier for visualization
 
-    def evaluate(self, variables: Dict[str, Any] = None,
-                 functions: FunctionDict = None) -> Any:
+    def evaluate(self, variables: Optional[Dict[str, Any]] = None,
+                 functions: Optional[FunctionDict] = None) -> Any:
         """Evaluate this node.
 
         Args:
@@ -67,8 +67,8 @@ class ExpressionNode:
 class ConstantNode(ExpressionNode):
     """Node representing a constant value."""
 
-    def evaluate(self, variables: Dict[str, Any] = None,
-                 functions: FunctionDict = None) -> float:
+    def evaluate(self, variables: Optional[Dict[str, Any]] = None,
+                 functions: Optional[FunctionDict] = None) -> float:
         """Return the constant value.
 
         Args:
@@ -85,8 +85,8 @@ class ConstantNode(ExpressionNode):
 class VariableNode(ExpressionNode):
     """Node representing a variable."""
 
-    def evaluate(self, variables: Dict[str, Any] = None,
-                 functions: FunctionDict = None) -> float:
+    def evaluate(self, variables: Optional[Dict[str, Any]] = None,
+                 functions: Optional[FunctionDict] = None) -> float:
         """Look up the variable value.
 
         Args:
@@ -102,12 +102,12 @@ class VariableNode(ExpressionNode):
         if variables is None:
             variables = {}
 
-        if self.value not in variables:
+        if isinstance(self.value, str) and self.value not in variables:
             raise ValueError(f"Variable '{self.value}' is not defined")
 
         logger.debug(
-            f"Evaluating variable {self.value} = {variables[self.value]}")
-        return float(variables[self.value])
+            f"Evaluating variable {self.value} = {variables[str(self.value)]}")
+        return float(variables[str(self.value)])
 
 
 class OperatorNode(ExpressionNode):
@@ -145,8 +145,8 @@ class OperatorNode(ExpressionNode):
         self.left = left
         self.right = right
 
-    def evaluate(self, variables: Dict[str, Any] = None,
-                 functions: FunctionDict = None) -> float:
+    def evaluate(self, variables: Optional[Dict[str, Any]] = None,
+                 functions: Optional[FunctionDict] = None) -> float:
         """Evaluate the operation.
 
         Args:
@@ -164,7 +164,7 @@ class OperatorNode(ExpressionNode):
         right_val = self.right.evaluate(variables, functions)
 
         try:
-            op_func = self.OPERATORS[self.value]
+            op_func = self.OPERATORS[str(self.value)]
             result = op_func(left_val, right_val)
             logger.debug(
                 f"Evaluating {left_val} {
@@ -203,8 +203,8 @@ class FunctionNode(ExpressionNode):
         super().__init__(function_name)
         self.argument = argument
 
-    def evaluate(self, variables: Dict[str, Any] = None,
-                 functions: FunctionDict = None) -> float:
+    def evaluate(self, variables: Optional[Dict[str, Any]] = None,
+                 functions: Optional[FunctionDict] = None) -> float:
         """Evaluate the function.
 
         Args:
@@ -229,7 +229,7 @@ class FunctionNode(ExpressionNode):
         arg_val = self.argument.evaluate(variables, functions)
 
         try:
-            func = all_functions[self.value]
+            func = all_functions[str(self.value)]
             result = func(arg_val)
             logger.debug(f"Evaluating {self.value}({arg_val}) = {result}")
             return result
@@ -249,8 +249,8 @@ class ExpressionTree:
         """
         self.root = root
 
-    def evaluate(self, variables: Dict[str, Any] = None,
-                 functions: FunctionDict = None) -> float:
+    def evaluate(self, variables: Optional[Dict[str, Any]] = None,
+                 functions: Optional[FunctionDict] = None) -> float:
         """Evaluate the expression tree.
 
         Args:
@@ -277,7 +277,7 @@ class ExpressionTree:
         return result
 
     def visualize(self, filename: str = "expression_tree.dot",
-                  variables: Dict[str, Any] = None,
+                  variables: Optional[Dict[str, Any]] = None,
                   show_trace: bool = False) -> str:
         """Generate GraphViz DOT code for the expression tree.
 
@@ -301,9 +301,9 @@ class ExpressionTree:
         dot_content.append("  edge [fontname=Arial];")
 
         # Dictionary to track node and edge information
-        node_labels = {}
-        edges = []
-        edge_labels = {}
+        node_labels: Dict[str, str] = {}
+        edges: List[Tuple[str, str]] = []
+        edge_labels: Dict[Tuple[str, str], str] = {}
 
         # Build the graph structure
         self._build_graph(node_labels, edges, edge_labels, self.root,
