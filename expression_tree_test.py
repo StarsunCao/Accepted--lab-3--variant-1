@@ -1,10 +1,9 @@
 import unittest
 import math
 from hypothesis import given, strategies as st
-import logging
 import os
 
-from expression_tree import parse_expression, ExpressionTree
+from expression_tree import parse_expression
 
 # Disable logging during tests
 # logging.disable(logging.CRITICAL)

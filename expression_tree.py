@@ -3,8 +3,6 @@ import logging
 import math
 import operator
 from typing import Dict, Any, Callable, Union, List, Tuple, Optional
-import os
-import subprocess
 
 # Configure logging
 # Create a logger
@@ -567,7 +565,7 @@ class ExpressionParser:
 
                 if self.position >= len(
                         self.tokens) or self.tokens[self.position] != ')':
-                    raise ValueError(f"Expected ')' after function argument")
+                    raise ValueError("Expected ')' after function argument")
 
                 self.position += 1  # Skip ')'
                 return FunctionNode(token, argument)
