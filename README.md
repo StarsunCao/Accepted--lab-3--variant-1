@@ -1,7 +1,9 @@
 # Accepted - Lab 3 - Variant 1
 
-This project implements an expression tree parser and evaluator for mathematical expressions.
-It provides functionality to parse, evaluate, and visualize expression trees with support for
+This project implements an expression tree parser 
+and evaluator for mathematical expressions.
+It provides functionality to parse, evaluate, 
+and visualize expression trees with support for
 variables, operators, and functions.
 It maintains a tree structure for representing mathematical expressions
 while providing efficient evaluation and visualization capabilities.
