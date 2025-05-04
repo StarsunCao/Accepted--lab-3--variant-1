@@ -294,12 +294,12 @@ class ExpressionTree:
         # Create DOT file content
         dot_content = ["digraph G {"]
         dot_content.append("  rankdir=LR;")  # Left to right layout
-        
+
         # 设置节点样式
         node_style = "  node [shape=circle, style=filled, "
         node_style += "fillcolor=lightblue, fontname=Arial];"
         dot_content.append(node_style)
-        
+
         dot_content.append("  edge [fontname=Arial];")
 
         # Dictionary to track node and edge information
@@ -465,17 +465,17 @@ class ExpressionParser:
         """
         # Replace ** with ^ for easier parsing
         expression = expression.replace("**", "^")
-    
+
         # Regular expression parts
         identifier = r'[a-zA-Z_][a-zA-Z0-9_]*'
         number = r'[0-9]+(?:\.[0-9]+)?'
         operators = r'\+|\-|\*|\/|\^'
         parentheses = r'\(|\)'
-        
+
         # Combine parts
         token_pattern = f'({identifier}|{number}|{operators}|{parentheses})'
         tokens = re.findall(token_pattern, expression)
-    
+
         logger.debug(f"Tokenized expression: {tokens}")
         return tokens
 
@@ -538,7 +538,7 @@ class ExpressionParser:
         return left
 
     def _parse_factor(self) -> ExpressionNode:
-        """Parse a factor (number, variable, function call, 
+        """Parse a factor (number, variable, function call,
         or parenthesized expression).
 
         Returns:
