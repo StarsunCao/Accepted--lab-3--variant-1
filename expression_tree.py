@@ -32,7 +32,7 @@ logger.info("Logger initialized")
 
 # Type definitions
 NodeType = Union[str, float, int]
-FunctionDict = Dict[str, Callable]
+FunctionDict = Dict[str, Callable[[float], float]]
 
 
 class ExpressionNode:
