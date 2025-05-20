@@ -264,7 +264,7 @@ class ExpressionTree:
         logger.info(f"Expression evaluated to: {result}")
         return result
 
-    def visualize(self, filename: str = None,
+    def visualize(self, filename: Optional[str] = None,
                   variables: Optional[Dict[str, Any]] = None,
                   show_trace: bool = False) -> str:
         """Generate text representation of the expression tree.
