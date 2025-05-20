@@ -112,8 +112,9 @@ class TestExpressionTree(unittest.TestCase):
         """Test visualization functionality."""
         tree = parse_expression("a + b * c")
         # Capture stdout to verify output
-        import io
-        import sys
+        # Remove these duplicate imports
+        # import io
+        # import sys
         captured_output = io.StringIO()
         original_stdout = sys.stdout
         sys.stdout = captured_output
@@ -195,8 +196,9 @@ class TestExpressionTree(unittest.TestCase):
         self.assertAlmostEqual(result, expected)
 
         # Test visualization with trace - no need to check for file
-        import sys
-        import io
+        # Remove these duplicate imports
+        # import sys
+        # import io
         original_stdout = sys.stdout
         captured_output = io.StringIO()
         sys.stdout = captured_output
