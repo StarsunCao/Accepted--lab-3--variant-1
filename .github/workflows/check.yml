@@ -20,7 +20,7 @@ jobs:
       
       - name: Run tests and show coverage report
         run: |
-          python -m pytest --verbose --no-header --no-summary -v expression_tree_test.py::TestExpressionTree::test_visualization
+          python -m pytest --verbose --no-header --no-summary -v -s expression_tree_test.py::TestExpressionTree::test_visualization
           coverage run -m pytest --verbose
           coverage report *.py
 
