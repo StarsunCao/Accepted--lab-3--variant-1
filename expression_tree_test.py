@@ -2,6 +2,8 @@ import unittest
 import math
 from hypothesis import given, strategies as st
 import os
+import sys
+import io  # 添加这一行
 
 from expression_tree import parse_expression
 
@@ -11,12 +13,6 @@ from expression_tree import parse_expression
 
 class TestExpressionTree(unittest.TestCase):
     """Test cases for the expression tree interpreter."""
-
-    def setUp(self):
-        """Set up test environment."""
-        # Ensure any visualization files are cleaned up
-        if os.path.exists("expression_tree.dot"):
-            os.remove("expression_tree.dot")
 
     def test_simple_addition(self):
         """Test simple addition expression."""
@@ -116,13 +112,27 @@ class TestExpressionTree(unittest.TestCase):
     def test_visualization(self):
         """Test visualization functionality."""
         tree = parse_expression("a + b * c")
+        # Capture stdout to verify output
+        import io
+        captured_output = io.StringIO()
+        original_stdout = sys.stdout
+        sys.stdout = captured_output
+
         dot_code = tree.visualize(
             variables={
                 "a": 1,
                 "b": 2,
                 "c": 3},
             show_trace=True)
-        self.assertTrue(os.path.exists("expression_tree.dot"))
+
+        # Reset stdout
+        sys.stdout = original_stdout
+
+        # Print the visualization again to the actual console
+        print("\n=== Visualization from test_visualization ===\n")
+        print(dot_code)
+
+        # Verify the output contains expected elements
         self.assertIn("digraph G {", dot_code)
         self.assertIn("rankdir=LR;", dot_code)
 
@@ -130,6 +140,10 @@ class TestExpressionTree(unittest.TestCase):
         self.assertRegex(dot_code, r'\d+\[label="a\\n= 1\.00"\];')
         self.assertRegex(dot_code, r'\d+\[label="\*\\n= 6\.00"\];')
         self.assertRegex(dot_code, r'\d+ -> \d+\[label="\d+"\];')
+
+        # Verify it was printed to console
+        console_output = captured_output.getvalue()
+        self.assertIn("digraph G {", console_output)
 
     @given(st.floats(min_value=-100, max_value=100),
            st.floats(min_value=-100, max_value=100))
@@ -178,12 +192,22 @@ class TestExpressionTree(unittest.TestCase):
 
         self.assertAlmostEqual(result, expected)
 
-        # Test visualization with trace
+        # Test visualization with trace - no need to check for file
+        original_stdout = sys.stdout
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
         dot_code = tree.visualize(
-            "complex_example.dot",
-            variables,
+            variables=variables,
             show_trace=True)
-        self.assertTrue(os.path.exists("complex_example.dot"))
+
+        # Reset stdout
+        sys.stdout = original_stdout
+
+        # Print the visualization again to the actual console
+        print("\n=== Visualization from test_complex_example ===\n")
+        print(dot_code)
+
         self.assertIn("digraph G {", dot_code)
         self.assertIn("rankdir=LR;", dot_code)
 

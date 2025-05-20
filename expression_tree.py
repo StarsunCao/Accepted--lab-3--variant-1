@@ -7,28 +7,22 @@ from typing import Dict, Any, Callable, Union, List, Tuple, Optional
 # Configure logging
 # Create a logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# Create file handler
-file_handler = logging.FileHandler('expression_tree.log', mode='w')
-file_handler.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)  # Changed from DEBUG to INFO for key steps only
 
 # Create console handler
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
+console_handler.setLevel(logging.INFO)  # Changed from DEBUG to INFO
 
 # Create formatter
 formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
+    '%(levelname)s - %(message)s')  # Simplified format
 console_handler.setFormatter(formatter)
 
-# Add handlers to logger
-logger.addHandler(file_handler)
+# Add handler to logger
 logger.addHandler(console_handler)
 
 # Log initialization message
-logger.info("Logger initialized")
+logger.info("Expression Tree initialized")
 
 # Type definitions
 NodeType = Union[str, float, int]
@@ -266,34 +260,28 @@ class ExpressionTree:
             functions = {}
 
         logger.info("Starting expression evaluation")
-        # Ensure log is written to file and console
-        for handler in logger.handlers:
-            handler.flush()
         result = self.root.evaluate(variables, functions)
         logger.info(f"Expression evaluated to: {result}")
-        # Ensure log is written again
-        for handler in logger.handlers:
-            handler.flush()
         return result
 
-    def visualize(self, filename: str = "expression_tree.dot",
+    def visualize(self, filename: str = None,
                   variables: Optional[Dict[str, Any]] = None,
                   show_trace: bool = False) -> str:
-        """Generate GraphViz DOT code for the expression tree.
+        """Generate text representation of the expression tree.
 
         Args:
-            filename: The filename to save the DOT code
+            filename: Unused parameter (kept for compatibility)
             variables: Dictionary of variable names to values (for trace)
             show_trace: Whether to show evaluation trace on the graph
 
         Returns:
-            The DOT code as a string
+            The text representation as a string
         """
-        # Create DOT file content
+        # Create DOT content
         dot_content = ["digraph G {"]
         dot_content.append("  rankdir=LR;")  # Left to right layout
 
-        # 设置节点样式
+        # Set node style
         node_style = "  node [shape=circle, style=filled, "
         node_style += "fillcolor=lightblue, fontname=Arial];"
         dot_content.append(node_style)
@@ -347,15 +335,9 @@ class ExpressionTree:
         # Join DOT content into a single string
         dot_code = '\n'.join(dot_content)
 
-        # Write DOT content to file if filename is provided
-        if filename:
-            with open(filename, 'w') as f:
-                f.write(dot_code)
-            logger.info(f"DOT code saved to {filename}")
-
-        # Ensure log is written
-        for handler in logger.handlers:
-            handler.flush()
+        # Print the visualization to console
+        logger.info("Expression tree visualization:")
+        print(dot_code)
 
         return dot_code
 
