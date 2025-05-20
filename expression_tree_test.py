@@ -117,30 +117,32 @@ class TestExpressionTree(unittest.TestCase):
         captured_output = io.StringIO()
         original_stdout = sys.stdout
         sys.stdout = captured_output
-    
+
         dot_code = tree.visualize(
             variables={
                 "a": 1,
                 "b": 2,
                 "c": 3},
             show_trace=True)
-    
+
         # Reset stdout
         sys.stdout = original_stdout
-    
+
         # Print the visualization again to the actual console
-        print("\n=== Visualization from test_visualization ===\n", file=sys.stderr)
+        print(
+            "\n=== Visualization from test_visualization ===\n",
+            file=sys.stderr)
         print(dot_code, file=sys.stderr)
-    
+
         # Verify the output contains expected elements
         self.assertIn("digraph G {", dot_code)
         self.assertIn("rankdir=LR;", dot_code)
-    
+
         # Check that the DOT code contains node and edge definitions
         self.assertRegex(dot_code, r'\d+\[label="a\\n= 1\.00"\];')
         self.assertRegex(dot_code, r'\d+\[label="\*\\n= 6\.00"\];')
         self.assertRegex(dot_code, r'\d+ -> \d+\[label="\d+"\];')
-    
+
         # Verify it was printed to console
         console_output = captured_output.getvalue()
         self.assertIn("digraph G {", console_output)
@@ -182,34 +184,36 @@ class TestExpressionTree(unittest.TestCase):
         """Test a complex example with multiple operations and functions."""
         expression = "sin(a) + cos(b) * sqrt(c^2 + d^2) / (e - f)"
         tree = parse_expression(expression)
-    
+
         variables = {"a": 0.5, "b": 0.3, "c": 3, "d": 4, "e": 10, "f": 5}
         result = tree.evaluate(variables)
-    
+
         # Calculate expected result manually
         expected = (math.sin(0.5) +
                     math.cos(0.3) * math.sqrt(3**2 + 4**2) / (10 - 5))
-    
+
         self.assertAlmostEqual(result, expected)
-    
+
         # Test visualization with trace - no need to check for file
         import sys
         import io
         original_stdout = sys.stdout
         captured_output = io.StringIO()
         sys.stdout = captured_output
-    
+
         dot_code = tree.visualize(
             variables=variables,
             show_trace=True)
-    
+
         # Reset stdout
         sys.stdout = original_stdout
-    
+
         # Print the visualization again to the actual console
-        print("\n=== Visualization from test_complex_example ===\n", file=sys.stderr)
+        print(
+            "\n=== Visualization from test_complex_example ===\n",
+            file=sys.stderr)
         print(dot_code, file=sys.stderr)
-    
+
         self.assertIn("digraph G {", dot_code)
         self.assertIn("rankdir=LR;", dot_code)
 
